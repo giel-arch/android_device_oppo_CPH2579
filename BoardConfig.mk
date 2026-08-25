@@ -47,21 +47,28 @@ BOARD_MAIN_SIZE := 0
 BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
 BOARD_HAS_LARGE_FILESYSTEM := true
 
-# OrangeFox Recovery Specific Flags
+# Resolution & Theme Setup (Fix Theme Selection Failed Error)
+TW_THEME := portrait_hdpi
+TARGET_SCREEN_WIDTH := 720
+TARGET_SCREEN_HEIGHT := 1600
+TW_SCREEN_WIDTH := 720
+TW_SCREEN_HEIGHT := 1600
+
+# TWRP & OrangeFox Recovery Specific Flags
+RECOVERY_SDCARD_ON_DATA := true
+TW_EXCLUDE_DEFAULT_USB_INIT := true
+TW_EXTRA_LANGUAGES := true
+TW_INCLUDE_CRYPTO := true
+TW_INCLUDE_CRYPTO_FBE := true
+TW_INPUT_BLACKLIST := "hbtp_vm"
+TW_USE_TOOLBOX := true
+TW_INCLUDE_REPACKTOOLS := true
+
+# OrangeFox Flags
 FOX_BUILD_TYPE := Stable
 FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER := 1
 OF_DISABLE_MIUI_SPECIFIC_FEATURES := 1
 OF_QUICK_BACKUP_LIST := "/boot;/vendor_boot;/data;"
-OF_SCREEN_H := 1600
-OF_STATUS_H := 80
-OF_STATUS_INDENT_LEFT := 48
-OF_STATUS_INDENT_RIGHT := 48
-OF_ALLOW_DISABLE_NAVBAR := 0
-
-# OrangeFox Security & Encryption Setup
-OF_USE_GREEN_LED := 0
-TW_INCLUDE_CRYPTO := true
-TW_INCLUDE_CRYPTO_FBE := true
 
 # Build Fixes
 DISABLE_VTS := true
