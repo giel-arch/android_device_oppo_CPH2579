@@ -62,7 +62,29 @@ jobs:
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
-        mka recoveryimage -j$(nproc --all) || mka vendor_bootimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
+        mka recoveryimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
+
+    - name: Pack TWRP Ramdisk / Vendor Boot Manual (If needed)
+      run: |
+        cd twrp
+        OUT=out/target/product/CPH2579
+        if [ -d "$OUT/recovery/root" ]; then
+          echo "Packing TWRP ramdisk..."
+          cd $OUT/recovery/root
+          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp.cpio.gz
+          cd ../../../../../
+          
+          # Buat vendor_boot.img jika mkbootimg ada
+          if [ -f "out/host/linux-x86/bin/mkbootimg" ]; then
+            out/host/linux-x86/bin/mkbootimg \
+              --ramdisk $OUT/ramdisk-twrp.cpio.gz \
+              --dtb device/oppo/CPH2579/prebuilt/dtb \
+              --header_version 3 \
+              --base 0x40000000 \
+              --pagesize 2048 \
+              -o $OUT/vendor_boot.img || true
+          fi
+        fi
 
     - name: List Output Files
       run: |
@@ -74,4 +96,5 @@ jobs:
         name: TWRP-OPPO-A38-CPH2579
         path: |
           twrp/out/target/product/CPH2579/*.img
+          twrp/out/target/product/CPH2579/*.cpio.gz
           twrp/out/target/product/CPH2579/ramdisk*
