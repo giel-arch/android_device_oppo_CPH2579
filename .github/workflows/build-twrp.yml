@@ -29,7 +29,6 @@ jobs:
         sudo rm -rf /usr/local/lib/android
         sudo rm -rf /opt/ghc
         sudo rm -rf /usr/local/share/boost
-        df -h
 
     - name: Install dependencies
       run: |
@@ -55,7 +54,7 @@ jobs:
         git config --global user.email "actions@github.com"
         repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1 --depth=1
 
-    - name: Sync Source Code (Shallow)
+    - name: Sync Source Code
       run: |
         cd twrp
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
@@ -65,39 +64,28 @@ jobs:
         cd twrp
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
-    - name: Build TWRP
+    - name: Build TWRP Binary & Ramdisk
       run: |
         cd twrp
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
-        mka recoveryimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
+        mka recovery recoveryimage -j$(nproc --all)
 
-    - name: Pack TWRP Ramdisk / Vendor Boot Manual (Fallback)
+    - name: Pack Full TWRP Ramdisk
       run: |
         cd twrp
         OUT=out/target/product/CPH2579
         if [ -d "$OUT/recovery/root" ]; then
-          echo "Packing TWRP ramdisk..."
+          echo "Packing Full TWRP ramdisk..."
           cd $OUT/recovery/root
-          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp.cpio.gz
-          cd ../../../../../
-          
-          if [ -f "out/host/linux-x86/bin/mkbootimg" ]; then
-            out/host/linux-x86/bin/mkbootimg \
-              --ramdisk $OUT/ramdisk-twrp.cpio.gz \
-              --dtb device/oppo/CPH2579/prebuilt/dtb \
-              --header_version 3 \
-              --base 0x40000000 \
-              --pagesize 2048 \
-              -o $OUT/vendor_boot.img || true
-          fi
+          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp-full.cpio.gz
         fi
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: TWRP-OPPO-A38-CPH2579
+        name: TWRP-FULL-OPPO-A38
         path: |
+          twrp/out/target/product/CPH2579/ramdisk-twrp-full.cpio.gz
           twrp/out/target/product/CPH2579/*.img
-          twrp/out/target/product/CPH2579/*.cpio.gz
