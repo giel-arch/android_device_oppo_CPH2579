@@ -1,0 +1,75 @@
+name: Build TWRP for OPPO A38 (CPH2579)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Clean up environment space
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 20480
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          gperf gcc-multilib g++-multilib \
+          libc6-dev lib32ncurses-dev x11proto-core-dev libx11-dev \
+          lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig \
+          git repo curl python3 bc bison build-essential ccache flex zip libncurses6 lib32ncurses6
+
+    - name: Install Repo tool
+      run: |
+        mkdir -p ~/bin
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        chmod a+x ~/bin/repo
+        echo "$HOME/bin" >> $GITHUB_PATH
+
+    - name: Initialize TWRP Source
+      run: |
+        mkdir twrp
+        cd twrp
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1 --depth=1
+
+    - name: Sync Source Code
+      run: |
+        cd twrp
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+
+    - name: Clone Device Tree
+      run: |
+        cd twrp
+        git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
+
+    - name: Build TWRP (vendor_bootimage / bootimage)
+      run: |
+        cd twrp
+        export ALLOW_MISSING_DEPENDENCIES=true
+        source build/envsetup.sh
+        lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
+        mka vendor_bootimage -j$(nproc --all) || mka bootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all)
+
+    - name: Upload Artifact / Release
+      uses: actions/upload-artifact@v4
+      with:
+        name: TWRP-OPPO-A38-CPH2579
+        path: |
+          twrp/out/target/product/CPH2579/vendor_boot.img
+          twrp/out/target/product/CPH2579/boot.img
+          twrp/out/target/product/CPH2579/recovery.img
+          twrp/out/target/product/CPH2579/*.img
