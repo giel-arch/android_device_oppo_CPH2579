@@ -4,6 +4,10 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 # Inherit TWRP Core Products
 $(call inherit-product, vendor/twrp/config/common.mk)
 
+# Copy recovery fstab
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/recovery.fstab:$(TARGET_COPY_OUT_RECOVERY)/root/system/etc/recovery.fstab
+
 # Device Identifier
 PRODUCT_DEVICE := CPH2579
 PRODUCT_NAME := omni_CPH2579
