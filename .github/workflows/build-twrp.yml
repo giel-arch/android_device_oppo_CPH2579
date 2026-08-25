@@ -1,3 +1,5 @@
+# GitHub Actions workflow for building TWRP for OPPO A38 (CPH2579)
+
 name: Build TWRP for OPPO A38 (CPH2579)
 
 on:
@@ -7,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     permissions:
       contents: write
 
@@ -17,84 +19,44 @@ jobs:
       with:
         root-reserve-mb: 20480
         swap-size-mb: 1024
-        remove-dotnet: 'true'
-        remove-android: 'true'
-        remove-haskell: 'true'
-        remove-codeql: 'true'
 
-    - name: Install dependencies
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install repo tool
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          gperf gcc-multilib g++-multilib \
-          libc6-dev lib32ncurses-dev x11proto-core-dev libx11-dev \
-          lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig \
-          git repo curl python3 bc bison build-essential ccache flex zip libncurses6 lib32ncurses6
+        sudo apt-get install -y repo
 
-    - name: Install Repo tool
+    - name: Sync Android source
+      env:
+        BRANCH: lineage-20.0
       run: |
-        mkdir -p ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
-        chmod a+x ~/bin/repo
-        echo "$HOME/bin" >> $GITHUB_PATH
+        repo init -u https://github.com/LineageOS/android.git -b $BRANCH --depth=1
+        repo sync -c -j$(nproc) --no-clone-bundle --no-tags
 
-    - name: Initialize TWRP Source
+    - name: Clone device tree
       run: |
-        mkdir twrp
-        cd twrp
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1 --depth=1
+        mkdir -p twrp/device/oppo/CPH2579
+        git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git twrp/device/oppo/CPH2579
 
-    - name: Sync Source Code
+    - name: Setup build environment
       run: |
-        cd twrp
-        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
-
-    - name: Clone Device Tree
-      run: |
-        cd twrp
-        git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
+        source build/envsetup.sh
+        lunch lineage_$(basename $(pwd))_userdebug
 
     - name: Build TWRP
       run: |
-        cd twrp
-        export ALLOW_MISSING_DEPENDENCIES=true
-        source build/envsetup.sh
-        lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
-        mka recoveryimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
+        mka recoveryimage
 
-    - name: Pack TWRP Ramdisk / Vendor Boot Manual (If needed)
-      run: |
-        cd twrp
-        OUT=out/target/product/CPH2579
-        if [ -d "$OUT/recovery/root" ]; then
-          echo "Packing TWRP ramdisk..."
-          cd $OUT/recovery/root
-          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp.cpio.gz
-          cd ../../../../../
-          
-          # Buat vendor_boot.img jika mkbootimg ada
-          if [ -f "out/host/linux-x86/bin/mkbootimg" ]; then
-            out/host/linux-x86/bin/mkbootimg \
-              --ramdisk $OUT/ramdisk-twrp.cpio.gz \
-              --dtb device/oppo/CPH2579/prebuilt/dtb \
-              --header_version 3 \
-              --base 0x40000000 \
-              --pagesize 2048 \
-              -o $OUT/vendor_boot.img || true
-          fi
-        fi
-
-    - name: List Output Files
-      run: |
-        ls -la twrp/out/target/product/CPH2579/ || true
-
-    - name: Upload Artifacts
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: TWRP-OPPO-A38-CPH2579
         path: |
+          twrp/out/target/product/CPH2579/vendor_boot.img
+          twrp/out/target/product/CPH2579/boot.img
+          twrp/out/target/product/CPH2579/recovery.img
           twrp/out/target/product/CPH2579/*.img
-          twrp/out/target/product/CPH2579/*.cpio.gz
-          twrp/out/target/product/CPH2579/ramdisk*
