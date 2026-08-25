@@ -64,8 +64,14 @@ jobs:
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
         mka recoveryimage -j$(nproc --all) || mka vendor_bootimage -j$(nproc --all) || mka bootimage -j$(nproc --all)
 
-    - name: Find and Upload Artifacts
+    - name: List Output Files
+      run: |
+        ls -la twrp/out/target/product/CPH2579/ || true
+
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: TWRP-OPPO-A38-CPH2579
-        path: twrp/out/target/product/CPH2579/*.img
+        path: |
+          twrp/out/target/product/CPH2579/*.img
+          twrp/out/target/product/CPH2579/ramdisk*

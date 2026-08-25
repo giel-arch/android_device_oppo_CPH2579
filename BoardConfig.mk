@@ -13,7 +13,6 @@ TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := generic
 
-# Perbaikan Error "Building a 32-bit-app-only product on a 64-bit device"
 TARGET_CPU_ABI_LIST_64_BIT := arm64-v8a
 TARGET_CPU_ABI_LIST_32_BIT := armeabi-v7a,armeabi
 TARGET_CPU_ABI_LIST := $(TARGET_CPU_ABI_LIST_64_BIT),$(TARGET_CPU_ABI_LIST_32_BIT)
@@ -30,13 +29,21 @@ TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x04000000 --tags_offset 0x0E000000 --dtb $(TARGET_PREBUILT_DTB)
 
+# Partitions & Image Size (Diperlukan agar mkbootimg menghasilkan .img)
+BOARD_FLASH_BLOCK_SIZE := 131072
+BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 67108864
+BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 67108864
+BOARD_HAS_NO_RECOVERY := false
+BOARD_USES_VENDOR_BOOTIMAGE := true
+
 # Dynamic Partitions & Fastbootd
 BOARD_SUPER_PARTITION_GROUPS := main
-BOARD_MAIN_SIZE := 0 # Sesuaikan jika membuat installer super
+BOARD_MAIN_SIZE := 0
 BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
 BOARD_HAS_LARGE_FILESYSTEM := true
 
-# TWRP Specific Flags#
+# TWRP Specific Flags
 TW_THEME := portrait_hdpi
 TW_SCREEN_WIDTH := 720
 TW_SCREEN_HEIGHT := 1600
@@ -48,20 +55,6 @@ TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_USE_TOOLBOX := true
 TW_INCLUDE_REPACKTOOLS := true
 
-# ============================================
 # TWRP-specific build fixes
-# ============================================
-
-# Disable VTS fuzzers (not needed for recovery)
 DISABLE_VTS := true
-
-# Allow missing dependencies for TWRP
 ALLOW_MISSING_DEPENDENCIES := true
-
-# Skip VTS modules
-#PRODUCT_SOONG_NAMESPACES := $(filter-out vts,$(PRODUCT_SOONG_NAMESPACES))
-
-# Recovery / Vendor Boot configuration
-BOARD_USES_VENDOR_BOOTIMAGE := true
-BOARD_HAS_NO_RECOVERY := true
-BOARD_RECOVERY_MKBOOTIMG_ARGS := $(BOARD_MKBOOTIMG_ARGS)
