@@ -1,6 +1,11 @@
 DEVICE_PATH := device/oppo/CPH2579
 
-# Architecture
+# Target Android 15 SDK (API Level 35) for OPPO A38 ColorOS 15
+PLATFORM_SDK_VERSION := 35
+PLATFORM_VERSION := 15
+PLATFORM_VERSION_CODENAME := REL
+
+# Architecture & Page Alignment (Android 15 Standard)
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
@@ -21,7 +26,7 @@ TARGET_CPU_ABI_LIST := $(TARGET_CPU_ABI_LIST_64_BIT),$(TARGET_CPU_ABI_LIST_32_BI
 TARGET_BOOTLOADER_BOARD_NAME := CPH2579
 TARGET_BOARD_PLATFORM := mt6769
 
-# Precise Stock Boot Header Setup (Diambil dari vendor_boot_b.img asli)
+# Stock Boot Header Setup (OPPO A38 Android 15)
 BOARD_BOOT_HEADER_VERSION := 4
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2 buildvariant=user
 BOARD_KERNEL_BASE := 0x40000000
@@ -47,14 +52,14 @@ BOARD_MAIN_SIZE := 0
 BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
 BOARD_HAS_LARGE_FILESYSTEM := true
 
-# Resolution & Theme Setup (Fix Theme Selection Failed Error)
+# Resolution & Theme Setup
 TW_THEME := portrait_hdpi
 TARGET_SCREEN_WIDTH := 720
 TARGET_SCREEN_HEIGHT := 1600
 TW_SCREEN_WIDTH := 720
 TW_SCREEN_HEIGHT := 1600
 
-# TWRP & OrangeFox Recovery Specific Flags
+# TWRP Specific Flags
 RECOVERY_SDCARD_ON_DATA := true
 TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_EXTRA_LANGUAGES := true
@@ -63,12 +68,6 @@ TW_INCLUDE_CRYPTO_FBE := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_USE_TOOLBOX := true
 TW_INCLUDE_REPACKTOOLS := true
-
-# OrangeFox Flags
-FOX_BUILD_TYPE := Stable
-FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER := 1
-OF_DISABLE_MIUI_SPECIFIC_FEATURES := 1
-OF_QUICK_BACKUP_LIST := "/boot;/vendor_boot;/data;"
 
 # Build Fixes
 DISABLE_VTS := true
