@@ -1,4 +1,4 @@
-name: Build OrangeFox Recovery for OPPO A38 (CPH2579)
+name: Build TWRP Android 13/14 for OPPO A38 (CPH2579)
 
 on:
   workflow_dispatch:
@@ -23,12 +23,10 @@ jobs:
         remove-codeql: 'true'
         remove-docker-images: 'true'
 
-    - name: Additional Free Disk Space Cleanup
+    - name: Free Disk Space
       run: |
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /usr/local/lib/android
-        sudo rm -rf /opt/ghc
-        sudo rm -rf /usr/local/share/boost
 
     - name: Install dependencies
       run: |
@@ -46,53 +44,49 @@ jobs:
         chmod a+x ~/bin/repo
         echo "$HOME/bin" >> $GITHUB_PATH
 
-    - name: Configure Git Extraheader Authentication
+    - name: Configure Git Credentials
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-        git config --global credential.helper store
         git config --global url."https://github.com/".insteadOf git@github.com:
-        git config --global url."https://gitlab.com/".insteadOf git@gitlab.com:
 
-    - name: Initialize OrangeFox Manifest
+    - name: Initialize Minimal TWRP Android 13/14 Manifest
       run: |
-        mkdir fox
-        cd fox
-        repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_12.1 --depth=1 --no-repo-verify
+        mkdir twrp
+        cd twrp
+        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-13 --depth=1
 
     - name: Sync Source Code
       run: |
-        cd fox
+        cd twrp
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
 
     - name: Clone Device Tree
       run: |
-        cd fox
+        cd twrp
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
-    - name: Build OrangeFox Recovery Image
+    - name: Build TWRP Android 13/14
       run: |
-        cd fox
+        cd twrp
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
-        mka recoveryimage -j$(nproc --all)
+        mka recovery recoveryimage -j$(nproc --all)
 
-    - name: Pack Ramdisk Fallback
+    - name: Pack Full Ramdisk
       run: |
-        cd fox
+        cd twrp
         OUT=out/target/product/CPH2579
         if [ -d "$OUT/recovery/root" ]; then
           cd $OUT/recovery/root
-          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-ofox.cpio.gz
+          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp-a13-full.cpio.gz
         fi
 
-    - name: Upload OrangeFox Artifacts
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: OrangeFox-OPPO-A38-CPH2579
+        name: TWRP-Android13-14-OPPO-A38
         path: |
-          fox/out/target/product/CPH2579/OrangeFox*.zip
-          fox/out/target/product/CPH2579/vendor_boot.img
-          fox/out/target/product/CPH2579/recovery.img
-          fox/out/target/product/CPH2579/*.cpio.gz
+          twrp/out/target/product/CPH2579/ramdisk-twrp-a13-full.cpio.gz
+          twrp/out/target/product/CPH2579/*.img
