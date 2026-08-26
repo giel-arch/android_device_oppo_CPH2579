@@ -66,10 +66,12 @@ jobs:
         cd twrp
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
-    - name: Build TWRP
+    - name: Build TWRP (Skip Soong Tests to Prevent Hang)
       run: |
         cd twrp
         export ALLOW_MISSING_DEPENDENCIES=true
+        export SOONG_SKIP_TESTS=true
+        export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
         mka recovery recoveryimage -j$(nproc --all)
@@ -80,13 +82,13 @@ jobs:
         OUT=out/target/product/CPH2579
         if [ -d "$OUT/recovery/root" ]; then
           cd $OUT/recovery/root
-          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp-a13-full.cpio.gz
+          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp-a15-full.cpio.gz
         fi
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: TWRP-Android13-14-OPPO-A38
+        name: TWRP-Android15-OPPO-A38
         path: |
-          twrp/out/target/product/CPH2579/ramdisk-twrp-a13-full.cpio.gz
+          twrp/out/target/product/CPH2579/ramdisk-twrp-a15-full.cpio.gz
           twrp/out/target/product/CPH2579/*.img
