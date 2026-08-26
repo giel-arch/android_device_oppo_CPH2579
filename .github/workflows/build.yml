@@ -1,4 +1,4 @@
-name: Build TWRP for OPPO A38 (CPH2579)
+name: Build TWRP Android 15 for OPPO A38
 
 on:
   workflow_dispatch:
@@ -15,21 +15,27 @@ jobs:
     - name: Clean up environment space
       uses: easimon/maximize-build-space@master
       with:
-        root-reserve-mb: 20480
+        root-reserve-mb: 2048
         swap-size-mb: 1024
         remove-dotnet: 'true'
         remove-android: 'true'
         remove-haskell: 'true'
         remove-codeql: 'true'
+        remove-docker-images: 'true'
+
+    - name: Free Disk Space
+      run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
 
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          gperf gcc-multilib gcc-10-multilib g++-multilib g++-10-multilib \
-          libc6-dev lib32ncurses5-dev x11proto-core-dev libx11-dev \
+          gperf gcc-multilib g++-multilib \
+          libc6-dev lib32ncurses-dev x11proto-core-dev libx11-dev \
           lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig \
-          git repo curl python3 bc bison build-essential ccache flex zip
+          git repo curl python3 bc bison build-essential ccache flex zip libncurses6 lib32ncurses6
 
     - name: Install Repo tool
       run: |
@@ -38,38 +44,51 @@ jobs:
         chmod a+x ~/bin/repo
         echo "$HOME/bin" >> $GITHUB_PATH
 
-    - name: Initialize TWRP Source
+    - name: Configure Git Credentials
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git config --global url."https://github.com/".insteadOf git@github.com:
+
+    - name: Initialize Minimal TWRP Manifest (twrp-12.1)
       run: |
         mkdir twrp
         cd twrp
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
         repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1 --depth=1
 
     - name: Sync Source Code
       run: |
         cd twrp
-        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
 
     - name: Clone Device Tree
       run: |
         cd twrp
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
-    - name: Build TWRP (vendor_bootimage / bootimage)
+    - name: Build TWRP
       run: |
         cd twrp
         export ALLOW_MISSING_DEPENDENCIES=true
+        export SOONG_SKIP_TESTS=true
+        export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
-        mka vendor_bootimage -j$(nproc --all) || mka bootimage -j$(nproc --all) || mka recoveryimage -j$(nproc --all)
+        mka recovery recoveryimage -j$(nproc --all)
 
-    - name: Upload Artifact / Release
+    - name: Pack Full Ramdisk
+      run: |
+        cd twrp
+        OUT=out/target/product/CPH2579
+        if [ -d "$OUT/recovery/root" ]; then
+          cd $OUT/recovery/root
+          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp-a15-full.cpio.gz
+        fi
+
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: TWRP-OPPO-A38-CPH2579
+        name: TWRP-Android15-OPPO-A38
         path: |
-          twrp/out/target/product/CPH2579/vendor_boot.img
-          twrp/out/target/product/CPH2579/boot.img
-          twrp/out/target/product/CPH2579/recovery.img
+          twrp/out/target/product/CPH2579/ramdisk-twrp-a15-full.cpio.gz
           twrp/out/target/product/CPH2579/*.img
