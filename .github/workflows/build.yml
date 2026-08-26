@@ -8,8 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
     - name: Clean up environment space
@@ -21,12 +19,6 @@ jobs:
         remove-android: 'true'
         remove-haskell: 'true'
         remove-codeql: 'true'
-        remove-docker-images: 'true'
-
-    - name: Free Disk Space
-      run: |
-        sudo rm -rf /usr/share/dotnet
-        sudo rm -rf /usr/local/lib/android
 
     - name: Install dependencies
       run: |
@@ -50,7 +42,7 @@ jobs:
         git config --global user.email "actions@github.com"
         git config --global url."https://github.com/".insteadOf git@github.com:
 
-    - name: Initialize Minimal TWRP Manifest (twrp-12.1)
+    - name: Initialize Minimal TWRP Manifest
       run: |
         mkdir twrp
         cd twrp
