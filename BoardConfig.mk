@@ -1,11 +1,10 @@
 DEVICE_PATH := device/oppo/CPH2579
 
-# Target Android 15 SDK (API Level 35) for OPPO A38 ColorOS 15
-PLATFORM_SDK_VERSION := 35
+# Override Android Platform Version
+PLATFORM_VERSION_OVERRIDE := 15
 PLATFORM_VERSION := 15
-PLATFORM_VERSION_CODENAME := REL
 
-# Architecture & Page Alignment (Android 15 Standard)
+# Architecture & Page Alignment
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
