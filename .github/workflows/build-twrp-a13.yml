@@ -50,11 +50,11 @@ jobs:
         git config --global user.email "actions@github.com"
         git config --global url."https://github.com/".insteadOf git@github.com:
 
-    - name: Initialize Minimal TWRP Android 13/14 Manifest
+    - name: Initialize Minimal TWRP Manifest (twrp-12.1)
       run: |
         mkdir twrp
         cd twrp
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-13 --depth=1
+        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1 --depth=1
 
     - name: Sync Source Code
       run: |
@@ -66,7 +66,7 @@ jobs:
         cd twrp
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
-    - name: Build TWRP Android 13/14
+    - name: Build TWRP
       run: |
         cd twrp
         export ALLOW_MISSING_DEPENDENCIES=true
