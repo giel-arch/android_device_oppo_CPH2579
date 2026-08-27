@@ -34,7 +34,7 @@ jobs:
     - name: Configure Git Credentials
       run: |
         git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+        git config --global user.email "actions@global.com"
         git config --global url."https://github.com/".insteadOf git@github.com:
 
     - name: Initialize Minimal TWRP Manifest
@@ -48,11 +48,11 @@ jobs:
         cd twrp
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
 
-    - name: Force Update PLATFORM_SDK_VERSION to 35 (Android 15)
+    - name: Force Update PLATFORM_SDK_VERSION to 34 (Android 14/15)
       run: |
         cd twrp
-        sed -i 's/PLATFORM_SDK_VERSION := 32/PLATFORM_SDK_VERSION := 35/g' build/make/core/version_defaults.mk
-        sed -i 's/PLATFORM_VERSION := 12/PLATFORM_VERSION := 15/g' build/make/core/version_defaults.mk
+        sed -i 's/PLATFORM_SDK_VERSION := 32/PLATFORM_SDK_VERSION := 34/g' build/make/core/version_defaults.mk
+        sed -i 's/PLATFORM_VERSION := 12/PLATFORM_VERSION := 14/g' build/make/core/version_defaults.mk
         grep "PLATFORM_SDK_VERSION" build/make/core/version_defaults.mk
 
     - name: Clone Device Tree
@@ -76,13 +76,13 @@ jobs:
         OUT=out/target/product/CPH2579
         if [ -d "$OUT/recovery/root" ]; then
           cd $OUT/recovery/root
-          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp-a15-real.cpio.gz
+          find . | cpio -o -H newc | gzip -9 > ../../ramdisk-twrp-a14-real.cpio.gz
         fi
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: TWRP-REAL-Android15-OPPO-A38
+        name: TWRP-REAL-Android14-15-OPPO-A38
         path: |
-          twrp/out/target/product/CPH2579/ramdisk-twrp-a15-real.cpio.gz
+          twrp/out/target/product/CPH2579/ramdisk-twrp-a14-real.cpio.gz
           twrp/out/target/product/CPH2579/*.img
