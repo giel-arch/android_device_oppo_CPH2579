@@ -56,6 +56,7 @@ jobs:
         sed -i 's/sepolicy_major_vers := 32/sepolicy_major_vers := 35/g' build/make/core/config.mk
         grep "PLATFORM_SDK_VERSION" build/make/core/version_defaults.mk
         grep "sepolicy_major_vers" build/make/core/config.mk
+        cp build/make/target/product/gsi/current.txt build/make/target/product/gsi/35.txt
 
     - name: Clone Device Tree
       run: |
