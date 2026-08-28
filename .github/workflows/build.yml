@@ -10,6 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Create Swap Space
+      run: |
+        sudo fallocate -l 16G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+        free -h
+
     - name: Free Standard Disk Space
       run: |
         sudo rm -rf /usr/share/dotnet
@@ -71,7 +79,7 @@ jobs:
         export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
         lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-eng || lunch twrp_CPH2579-userdebug
-        mka vendorbootimage -j$(nproc --all)
+        mka vendorbootimage -j2
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
