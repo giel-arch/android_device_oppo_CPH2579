@@ -71,7 +71,7 @@ jobs:
         export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
-        mka vendorboot -j$(nproc --all)
+        mka bootimage -j$(nproc --all)
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -79,3 +79,4 @@ jobs:
         name: TWRP-Android15-OPPO-A38-VendorBoot
         path: |
           twrp/out/target/product/CPH2579/vendor_boot.img
+          twrp/out/target/product/CPH2579/boot.img
