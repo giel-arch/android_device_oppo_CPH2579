@@ -4,5 +4,5 @@ PRODUCT_MAKEFILES := \
 COMMON_LUNCH_CHOICES := \
     twrp_CPH2579-eng \
     twrp_CPH2579-userdebug \
-    twrp_CPH2579-ap3a-eng \
-    twrp_CPH2579-ap3a-userdebug
+    twrp_CPH2579-ap2a-eng \
+    twrp_CPH2579-ap2a-userdebug

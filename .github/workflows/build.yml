@@ -70,7 +70,7 @@ jobs:
         export SOONG_SKIP_TESTS=true
         export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
-        lunch twrp_CPH2579-eng || lunch twrp_CPH2579-ap3a-eng || lunch twrp_CPH2579-userdebug
+        lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-eng || lunch twrp_CPH2579-userdebug
         mka vendorbootimage -j$(nproc --all)
 
     - name: Upload Artifacts
