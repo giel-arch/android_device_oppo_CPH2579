@@ -10,13 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Create Swap Space
-      run: |
-        sudo fallocate -l 16G /swapfile
-        sudo chmod 600 /swapfile
-        sudo mkswap /swapfile
-        sudo swapon /swapfile
-        free -h
+    - name: Set Swap Space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 12
 
     - name: Free Standard Disk Space
       run: |
