@@ -41,7 +41,7 @@ jobs:
       run: |
         mkdir twrp
         cd twrp
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1 --depth=1
+        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-14.1 --depth=1
 
     - name: Sync Source Code
       run: |
@@ -51,12 +51,12 @@ jobs:
     - name: Force Update SDK & SEPolicy Version to 35 (Android 15)
       run: |
         cd twrp
-        sed -i 's/PLATFORM_SDK_VERSION := 32/PLATFORM_SDK_VERSION := 35/g' build/make/core/version_defaults.mk
-        sed -i 's/PLATFORM_VERSION := 12/PLATFORM_VERSION := 15/g' build/make/core/version_defaults.mk
-        sed -i 's/sepolicy_major_vers := 32/sepolicy_major_vers := 35/g' build/make/core/config.mk
-        grep "PLATFORM_SDK_VERSION" build/make/core/version_defaults.mk
-        grep "sepolicy_major_vers" build/make/core/config.mk
-        cp build/make/target/product/gsi/current.txt build/make/target/product/gsi/35.txt
+        sed -i 's/PLATFORM_SDK_VERSION := 34/PLATFORM_SDK_VERSION := 35/g' build/make/core/version_defaults.mk || true
+        sed -i 's/PLATFORM_VERSION := 14/PLATFORM_VERSION := 15/g' build/make/core/version_defaults.mk || true
+        sed -i 's/sepolicy_major_vers := 34/sepolicy_major_vers := 35/g' build/make/core/config.mk || true
+        grep "PLATFORM_SDK_VERSION" build/make/core/version_defaults.mk || true
+        grep "sepolicy_major_vers" build/make/core/config.mk || true
+        cp build/make/target/product/gsi/current.txt build/make/target/product/gsi/35.txt || true
 
     - name: Clone Device Tree
       run: |
