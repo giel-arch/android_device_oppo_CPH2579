@@ -71,7 +71,7 @@ jobs:
         export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
         lunch omni_CPH2579-eng || lunch omni_CPH2579-userdebug
-        mka recovery recoveryimage -j$(nproc --all)
+        mka vendorboot -j$(nproc --all)
 
     - name: Pack Full Ramdisk
       run: |
@@ -87,5 +87,5 @@ jobs:
       with:
         name: TWRP-REAL-Android14-15-OPPO-A38
         path: |
+          twrp/out/target/product/CPH2579/vendor_boot.img
           twrp/out/target/product/CPH2579/ramdisk-twrp-a14-real.cpio.gz
-          twrp/out/target/product/CPH2579/*.img
