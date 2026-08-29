@@ -19,4 +19,5 @@ PRODUCT_BUILD_VENDOR_BOOT_IMAGE := true
 PRODUCT_GMS_CLIENTID_BASE := android-oppo
 
 # Fix TWRP ramdisk copy error
-PRODUCT_PACKAGES += task_profiles.json
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/task_profiles.json:$(TARGET_COPY_OUT_SYSTEM)/etc/task_profiles.json
