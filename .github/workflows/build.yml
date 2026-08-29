@@ -76,6 +76,7 @@ jobs:
         export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
         lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-eng || lunch twrp_CPH2579-userdebug
+        mka task_profiles.json -j2 || true
         mka vendorbootimage -j2
 
     - name: Upload Artifacts
