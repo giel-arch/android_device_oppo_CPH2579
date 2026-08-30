@@ -89,32 +89,29 @@ jobs:
             print('Patching DRM failed:', e)
         " || true
         
-        # 3. Patch gui_init() to initialize Fake Surface if gr_init fails (Headless Fallback)
+        # 3. Patch gr_init() to initialize Fake Surface if fbdev fails (Headless Fallback)
         python3 -c "
         import sys
         try:
-            content = open('bootable/recovery/gui/gui.cpp').read()
-            replacement = '''gr_init();
-                if (gr_draw == NULL) {
-                    printf(\"Running Headless TWRP Fallback!\\\\n\");
-                    gr_draw = (GRSurface*)malloc(sizeof(GRSurface));
-                    gr_draw->width = 720;
-                    gr_draw->height = 1600;
-                    gr_draw->row_bytes = 720 * 4;
-                    gr_draw->pixel_bytes = 4;
-                    gr_draw->data = (unsigned char*)malloc(720 * 1600 * 4);
-                    gr_backend = (minui_backend*)malloc(sizeof(minui_backend));
-                    gr_backend->blank = [](minui_backend*, bool) {};
-                    gr_backend->sync = [](minui_backend*, GRSurface*) -> GRSurface* { return gr_draw; };
-                    gr_backend->flip = [](minui_backend*) -> GRSurface* { return gr_draw; };
-                    gr_backend->exit = [](minui_backend*) {};
-                }'''
-            if 'gr_init();' in content:
-                content = content.replace('gr_init();', replacement, 1)
-                open('bootable/recovery/gui/gui.cpp', 'w').write(content)
+            content = open('bootable/recovery/minuitwrp/graphics.cpp').read()
+            replacement = '''printf(\"Running Headless TWRP Fallback!\\\\n\");
+            gr_draw = (GRSurface*)malloc(sizeof(GRSurface));
+            gr_draw->width = 720;
+            gr_draw->height = 1600;
+            gr_draw->row_bytes = 720 * 4;
+            gr_draw->pixel_bytes = 4;
+            gr_draw->data = (unsigned char*)malloc(720 * 1600 * 4);
+            gr_backend = (minui_backend*)malloc(sizeof(minui_backend));
+            gr_backend->blank = [](minui_backend*, bool) {};
+            gr_backend->sync = [](minui_backend*, GRSurface*) -> GRSurface* { return gr_draw; };
+            gr_backend->flip = [](minui_backend*) -> GRSurface* { return gr_draw; };
+            gr_backend->exit = [](minui_backend*) {};'''
+            if 'return -1;' in content:
+                content = content.replace('return -1;', replacement, 1)
+                open('bootable/recovery/minuitwrp/graphics.cpp', 'w').write(content)
                 print('Headless patch applied successfully!')
             else:
-                print('Failed to find gr_init(); in gui.cpp')
+                print('Failed to find return -1; in graphics.cpp')
         except Exception as e:
             print('Patching failed:', e)
         " || true
