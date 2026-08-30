@@ -102,8 +102,8 @@ jobs:
             gr_draw->pixel_bytes = 4;
             gr_draw->data = (unsigned char*)malloc(720 * 1600 * 4);
             gr_backend = (minui_backend*)malloc(sizeof(minui_backend));
+            gr_backend->init = [](minui_backend*) -> GRSurface* { return gr_draw; };
             gr_backend->blank = [](minui_backend*, bool) {};
-            gr_backend->sync = [](minui_backend*, GRSurface*) -> GRSurface* { return gr_draw; };
             gr_backend->flip = [](minui_backend*) -> GRSurface* { return gr_draw; };
             gr_backend->exit = [](minui_backend*) {};'''
             if 'return -1;' in content:
