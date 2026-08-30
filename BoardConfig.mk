@@ -52,9 +52,7 @@ BOARD_HAS_LARGE_FILESYSTEM := true
 
 # Fix Symlink Issues (AOSP 11+)
 TARGET_COPY_OUT_VENDOR := vendor
-TARGET_COPY_OUT_PRODUCT := product
-TARGET_COPY_OUT_SYSTEM_EXT := system_ext
-TARGET_COPY_OUT_ODM := odm
+BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 
 # Resolution & Theme Setup
 TW_THEME := portrait_hdpi
