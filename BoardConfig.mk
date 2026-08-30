@@ -50,6 +50,12 @@ BOARD_SUPER_PARTITION_GROUPS := main
 BOARD_MAIN_SIZE := 0
 BOARD_HAS_LARGE_FILESYSTEM := true
 
+# Fix Symlink Issues (AOSP 11+)
+TARGET_COPY_OUT_VENDOR := vendor
+TARGET_COPY_OUT_PRODUCT := product
+TARGET_COPY_OUT_SYSTEM_EXT := system_ext
+TARGET_COPY_OUT_ODM := odm
+
 # Resolution & Theme Setup
 TW_THEME := portrait_hdpi
 TARGET_SCREEN_WIDTH := 720
