@@ -16,7 +16,9 @@ PRODUCT_MODEL := Oppo A38
 PRODUCT_MANUFACTURER := oppo
 
 PRODUCT_BUILD_VENDOR_BOOT_IMAGE := true
-PRODUCT_GMS_CLIENTID_BASE := android-oppo
-
 # Fix TWRP ramdisk copy error
 
+# Debugging tools
+PRODUCT_PACKAGES += \
+    logd \
+    logcat
