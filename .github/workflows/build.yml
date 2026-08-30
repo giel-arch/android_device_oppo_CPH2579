@@ -76,28 +76,45 @@ jobs:
         git clone https://android.googlesource.com/platform/external/libdrm -b android-15.0.0_r1 external/libdrm || true
         
         # 2. Patch graphics_drm.cpp to force DRM Master
-        sed -i '/drmModeGetResources/i \    drmSetMaster(drm_fd);' bootable/recovery/minuitwrp/graphics_drm.cpp || true
+        python3 -c "
+        try:
+            content = open('bootable/recovery/minuitwrp/graphics_drm.cpp').read()
+            if 'drmModeGetResources(' in content:
+                content = content.replace('res = drmModeGetResources(drm_fd);', 'drmSetMaster(drm_fd);\n    res = drmModeGetResources(drm_fd);')
+                open('bootable/recovery/minuitwrp/graphics_drm.cpp', 'w').write(content)
+                print('DRM Master patch applied successfully!')
+            else:
+                print('Failed to find drmModeGetResources in graphics_drm.cpp')
+        except Exception as e:
+            print('Patching DRM failed:', e)
+        " || true
         
         # 3. Patch gui_init() to initialize Fake Surface if gr_init fails (Headless Fallback)
         python3 -c "
         import sys
         try:
             content = open('bootable/recovery/gui/gui.cpp').read()
-            replacement = '''LOGERR(\"Failed to initialize graphics.\\n\");
-                printf(\"Running Headless TWRP Fallback!\\\\n\");
-                gr_draw = (GRSurface*)malloc(sizeof(GRSurface));
-                gr_draw->width = 720;
-                gr_draw->height = 1600;
-                gr_draw->row_bytes = 720 * 4;
-                gr_draw->pixel_bytes = 4;
-                gr_draw->data = (unsigned char*)malloc(720 * 1600 * 4);
-                gr_backend = (minui_backend*)malloc(sizeof(minui_backend));
-                gr_backend->blank = [](minui_backend*, bool) {};
-                gr_backend->sync = [](minui_backend*, GRSurface*) -> GRSurface* { return gr_draw; };
-                gr_backend->flip = [](minui_backend*) -> GRSurface* { return gr_draw; };
-                gr_backend->exit = [](minui_backend*) {};'''
-            content = content.replace('LOGERR(\"Failed to initialize graphics.\\n\");\\n\\t\\treturn;', replacement)
-            open('bootable/recovery/gui/gui.cpp', 'w').write(content)
+            replacement = '''gr_init();
+                if (gr_draw == NULL) {
+                    printf(\"Running Headless TWRP Fallback!\\\\n\");
+                    gr_draw = (GRSurface*)malloc(sizeof(GRSurface));
+                    gr_draw->width = 720;
+                    gr_draw->height = 1600;
+                    gr_draw->row_bytes = 720 * 4;
+                    gr_draw->pixel_bytes = 4;
+                    gr_draw->data = (unsigned char*)malloc(720 * 1600 * 4);
+                    gr_backend = (minui_backend*)malloc(sizeof(minui_backend));
+                    gr_backend->blank = [](minui_backend*, bool) {};
+                    gr_backend->sync = [](minui_backend*, GRSurface*) -> GRSurface* { return gr_draw; };
+                    gr_backend->flip = [](minui_backend*) -> GRSurface* { return gr_draw; };
+                    gr_backend->exit = [](minui_backend*) {};
+                }'''
+            if 'gr_init();' in content:
+                content = content.replace('gr_init();', replacement, 1)
+                open('bootable/recovery/gui/gui.cpp', 'w').write(content)
+                print('Headless patch applied successfully!')
+            else:
+                print('Failed to find gr_init(); in gui.cpp')
         except Exception as e:
             print('Patching failed:', e)
         " || true

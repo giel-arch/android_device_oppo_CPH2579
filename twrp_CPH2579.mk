@@ -22,3 +22,4 @@ PRODUCT_BUILD_VENDOR_BOOT_IMAGE := true
 PRODUCT_PACKAGES += \
     logd \
     logcat
+PRODUCT_PACKAGES += libboot_control_client
