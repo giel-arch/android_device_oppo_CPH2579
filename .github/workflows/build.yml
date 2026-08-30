@@ -68,6 +68,43 @@ jobs:
         cd twrp
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
+    - name: Apply TWRP C++ Patches (DRM Master & Headless Fallback)
+      run: |
+        cd twrp
+        # 1. Update libdrm to Android 15 AOSP
+        rm -rf external/libdrm
+        git clone https://android.googlesource.com/platform/external/libdrm -b android-15.0.0_r1 external/libdrm || true
+        
+        # 2. Patch graphics_drm.cpp to force DRM Master
+        sed -i '/drmModeGetResources/i \    drmSetMaster(drm_fd);' bootable/recovery/minuitwrp/graphics_drm.cpp || true
+        
+        # 3. Patch gui_init() to initialize Fake Surface if gr_init fails (Headless Fallback)
+        python3 -c "
+        import sys
+        try:
+            content = open('bootable/recovery/gui/gui.cpp').read()
+            replacement = '''LOGERR(\"Failed to initialize graphics.\\n\");
+                printf(\"Running Headless TWRP Fallback!\\\\n\");
+                gr_draw = (GRSurface*)malloc(sizeof(GRSurface));
+                gr_draw->width = 720;
+                gr_draw->height = 1600;
+                gr_draw->row_bytes = 720 * 4;
+                gr_draw->pixel_bytes = 4;
+                gr_draw->data = (unsigned char*)malloc(720 * 1600 * 4);
+                gr_backend = (minui_backend*)malloc(sizeof(minui_backend));
+                gr_backend->blank = [](minui_backend*, bool) {};
+                gr_backend->sync = [](minui_backend*, GRSurface*) -> GRSurface* { return gr_draw; };
+                gr_backend->flip = [](minui_backend*) -> GRSurface* { return gr_draw; };
+                gr_backend->exit = [](minui_backend*) {};'''
+            content = content.replace('LOGERR(\"Failed to initialize graphics.\\n\");\\n\\t\\treturn;', replacement)
+            open('bootable/recovery/gui/gui.cpp', 'w').write(content)
+        except Exception as e:
+            print('Patching failed:', e)
+        " || true
+        
+        # 4. Patch LoadPackage("splash") to not draw if headless
+        sed -i 's/res = LoadPackage("splash", TWRES "splash.xml", "splash");/if (!gr_backend || gr_backend->blank == NULL) res = 0; else res = LoadPackage("splash", TWRES "splash.xml", "splash");/g' bootable/recovery/gui/gui.cpp || true
+
     - name: Build TWRP Vendor Boot
       run: |
         cd twrp
