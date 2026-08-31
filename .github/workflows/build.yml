@@ -53,6 +53,9 @@ jobs:
         export FOX_VENDOR_BOOT_RECOVERY=1
         export FOX_RECOVERY_INSTALL_PARTITION="/vendor_boot"
         source build/envsetup.sh
+        # Patch readonly variable errors in OrangeFox AOSP 14.1
+        sed -i 's/AB_OTA_UPDATER :=/# AB_OTA_UPDATER :=/g' bootable/recovery/orangefox.mk || true
+        sed -i 's/AB_OTA_UPDATER ?=/# AB_OTA_UPDATER ?=/g' bootable/recovery/orangefox.mk || true
         lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-trunk_staging-eng || lunch twrp_CPH2579-eng
         mka vendorbootimage -j2
 
