@@ -101,74 +101,7 @@ jobs:
             print('Undo V10 failed:', e)
         " || true
         
-        cat << 'EOF' > patch.py
-        import sys
-        
-        try:
-            content = open('bootable/recovery/minuitwrp/graphics_drm.cpp').read()
-            
-            old_flip = '''static GRSurface* drm_flip(minui_backend* backend __unused) {
-            bool ongoing_flip = true;
-            memcpy(drm_surfaces[current_buffer]->base.data,
-                    draw_buf->data, draw_buf->height * draw_buf->row_bytes);
-        
-        
-            if (drmModePageFlip(drm_fd, main_monitor_crtc->crtc_id,
-                                  drm_surfaces[current_buffer]->fb_id, DRM_MODE_PAGE_FLIP_EVENT, &ongoing_flip)) {
-                printf("Failed to drmModePageFlip");
-                return nullptr;
-            }
-        
-            while (ongoing_flip) {
-                struct pollfd fds = {
-                    .fd = drm_fd,
-                    .events = POLLIN
-                };
-        
-                if (poll(&fds, 1, -1) == -1 || !(fds.revents & POLLIN)) {
-                    perror("Failed to poll() on drm fd");
-                    break;
-                }
-        
-                drmEventContext evctx = {
-                    .version = DRM_EVENT_CONTEXT_VERSION,
-                    .page_flip_handler = page_flip_complete
-                };
-        
-                if (drmHandleEvent(drm_fd, &evctx) != 0) {
-                    perror("Failed to drmHandleEvent");
-                    break;
-                }
-            }
-        
-            current_buffer = 1 - current_buffer;
-            return &drm_surfaces[current_buffer]->base;
-        }'''
-        
-            new_flip = '''#include <unistd.h>
-        
-        static GRSurface* drm_flip(minui_backend* backend __unused) {
-            // V14: Direct Framebuffer Memory Write with Software VSYNC Throttle
-            // Bypass ALL Kernel DRM updates to prevent Kernel Panic
-            memcpy(drm_surfaces[1]->base.data,
-                    draw_buf->data, draw_buf->height * draw_buf->row_bytes);
-        
-            // Sleep for 16ms to simulate 60Hz VSYNC
-            // Without this, the UI loop runs at millions of frames per second,
-            // saturating the memory bus and causing an instant hardware lockup/panic!
-            usleep(16000);
-        
-            return draw_buf;
-        }'''
-        
-            content = content.replace(old_flip, new_flip)
-            
-            open('bootable/recovery/minuitwrp/graphics_drm.cpp', 'w').write(content)
-            print('DRM Direct Memory Write V14 (60Hz Throttle) applied successfully!')
-        except Exception as e:
-            print('Patching drm_flip failed:', e)
-        EOF
-        python3 patch.py || true
+        python3 .github/workflows/patch_v15.py || true
         
         # 4. Patch LoadPackage("splash") to not draw if headless
         sed -i 's/res = LoadPackage("splash", TWRES "splash.xml", "splash");/if (!gr_backend || gr_backend->blank == NULL) res = 0; else res = LoadPackage("splash", TWRES "splash.xml", "splash");/g' bootable/recovery/gui/gui.cpp || true
