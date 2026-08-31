@@ -102,66 +102,8 @@ jobs:
         " || true
         
         # 4. Patch drm_flip to use drmModeSetCrtc instead of drmModePageFlip (DRM Rewrite V11)
-        python3 -c "
-        import sys
-        try:
-            content = open('bootable/recovery/minuitwrp/graphics_drm.cpp').read()
-            
-            old_flip = '''static GRSurface* drm_flip(minui_backend* backend __unused) {
-    bool ongoing_flip = true;
-    memcpy(drm_surfaces[current_buffer]->base.data,
-            draw_buf->data, draw_buf->height * draw_buf->row_bytes);
-
-
-    if (drmModePageFlip(drm_fd, main_monitor_crtc->crtc_id,
-                          drm_surfaces[current_buffer]->fb_id, DRM_MODE_PAGE_FLIP_EVENT, &ongoing_flip)) {
-        printf(\"Failed to drmModePageFlip\");
-        return nullptr;
-    }
-
-    while (ongoing_flip) {
-        struct pollfd fds = {
-            .fd = drm_fd,
-            .events = POLLIN
-        };
-
-        if (poll(&fds, 1, -1) == -1 || !(fds.revents & POLLIN)) {
-            perror(\"Failed to poll() on drm fd\");
-            break;
-        }
-
-        drmEventContext evctx = {
-            .version = DRM_EVENT_CONTEXT_VERSION,
-            .page_flip_handler = page_flip_complete
-        };
-
-        if (drmHandleEvent(drm_fd, &evctx) != 0) {
-            perror(\"Failed to drmHandleEvent\");
-            break;
-        }
-    }
-
-    current_buffer = 1 - current_buffer;
-    return draw_buf;
-}'''
-            new_flip = '''static GRSurface* drm_flip(minui_backend* backend __unused) {
-    memcpy(drm_surfaces[current_buffer]->base.data,
-            draw_buf->data, draw_buf->height * draw_buf->row_bytes);
-
-    drm_enable_crtc(drm_fd, main_monitor_crtc, drm_surfaces[current_buffer]);
-
-    current_buffer = 1 - current_buffer;
-    return draw_buf;
-}'''
-            if 'static GRSurface* drm_flip' in content:
-                content = content.replace(old_flip, new_flip, 1)
-                open('bootable/recovery/minuitwrp/graphics_drm.cpp', 'w').write(content)
-                print('DRM Flip Rewrite V11 applied successfully!')
-            else:
-                print('Failed to find drm_flip in graphics_drm.cpp')
-        except Exception as e:
-            print('Patching drm_flip failed:', e)
-        " || true
+        echo "aW1wb3J0IHN5cwoKdHJ5OgogICAgY29udGVudCA9IG9wZW4oJ2Jvb3RhYmxlL3JlY292ZXJ5L21pbnVpdHdycC9ncmFwaGljc19kcm0uY3BwJykucmVhZCgpCiAgICAKICAgIG9sZF9mbGlwID0gJycnc3RhdGljIEdSU3VyZmFjZSogZHJtX2ZsaXAobWludWlfYmFja2VuZCogYmFja2VuZCBfX3VudXNlZCkgewogICAgYm9vbCBvbmdvaW5nX2ZsaXAgPSB0cnVlOwogICAgbWVtY3B5KGRybV9zdXJmYWNlc1tjdXJyZW50X2J1ZmZlcl0tPmJhc2UuZGF0YSwKICAgICAgICAgICAgZHJhd19idWYtPmRhdGEsIGRyYXdfYnVmLT5oZWlnaHQgKiBkcmF3X2J1Zi0+cm93X2J5dGVzKTsKCgogICAgaWYgKGRybU1vZGVQYWdlRmxpcChkcm1fZmQsIG1haW5fbW9uaXRvcl9jcnRjLT5jcnRjX2lkLAogICAgICAgICAgICAgICAgICAgICAgICAgIGRybV9zdXJmYWNlc1tjdXJyZW50X2J1ZmZlcl0tPmZiX2lkLCBEUk1fTU9ERV9QQUdFX0ZMSVBfRVZFTlQsICZvbmdvaW5nX2ZsaXApKSB7CiAgICAgICAgcHJpbnRmKCJGYWlsZWQgdG8gZHJtTW9kZVBhZ2VGbGlwIik7CiAgICAgICAgcmV0dXJuIG51bGxwdHI7CiAgICB9CgogICAgd2hpbGUgKG9uZ29pbmdfZmxpcCkgewogICAgICAgIHN0cnVjdCBwb2xsZmQgZmRzID0gewogICAgICAgICAgICAuZmQgPSBkcm1fZmQsCiAgICAgICAgICAgIC5ldmVudHMgPSBQT0xMSU4KICAgICAgICB9OwoKICAgICAgICBpZiAocG9sbCgmZmRzLCAxLCAtMSkgPT0gLTEgfHwgIShmZHMucmV2ZW50cyAmIFBPTExJTikpIHsKICAgICAgICAgICAgcGVycm9yKCJGYWlsZWQgdG8gcG9sbCgpIG9uIGRybSBmZCIpOwogICAgICAgICAgICBicmVhazsKICAgICAgICB9CgogICAgICAgIGRybUV2ZW50Q29udGV4dCBldmN0eCA9IHsKICAgICAgICAgICAgLnZlcnNpb24gPSBEUk1fRVZFTlRfQ09OVEVYVF9WRVJTSU9OLAogICAgICAgICAgICAucGFnZV9mbGlwX2hhbmRsZXIgPSBwYWdlX2ZsaXBfY29tcGxldGUKICAgICAgICB9OwoKICAgICAgICBpZiAoZHJtSGFuZGxlRXZlbnQoZHJtX2ZkLCAmZXZjdHgpICE9IDApIHsKICAgICAgICAgICAgcGVycm9yKCJGYWlsZWQgdG8gZHJtSGFuZGxlRXZlbnQiKTsKICAgICAgICAgICAgYnJlYWs7CiAgICAgICAgfQogICAgfQoKICAgIGN1cnJlbnRfYnVmZmVyID0gMSAtIGN1cnJlbnRfYnVmZmVyOwogICAgcmV0dXJuIGRyYXdfYnVmOwp9JycnCgogICAgbmV3X2ZsaXAgPSAnJydzdGF0aWMgR1JTdXJmYWNlKiBkcm1fZmxpcChtaW51aV9iYWNrZW5kKiBiYWNrZW5kIF9fdW51c2VkKSB7CiAgICBtZW1jcHkoZHJtX3N1cmZhY2VzW2N1cnJlbnRfYnVmZmVyXS0+YmFzZS5kYXRhLAogICAgICAgICAgICBkcmF3X2J1Zi0+ZGF0YSwgZHJhd19idWYtPmhlaWdodCAqIGRyYXdfYnVmLT5yb3dfYnl0ZXMpOwoKICAgIGRybV9lbmFibGVfY3J0Yyhkcm1fZmQsIG1haW5fbW9uaXRvcl9jcnRjLCBkcm1fc3VyZmFjZXNbY3VycmVudF9idWZmZXJdKTsKCiAgICBjdXJyZW50X2J1ZmZlciA9IDEgLSBjdXJyZW50X2J1ZmZlcjsKICAgIHJldHVybiBkcmF3X2J1ZjsKfScnJwoKICAgIGlmICdzdGF0aWMgR1JTdXJmYWNlKiBkcm1fZmxpcCcgaW4gY29udGVudDoKICAgICAgICBjb250ZW50ID0gY29udGVudC5yZXBsYWNlKG9sZF9mbGlwLCBuZXdfZmxpcCwgMSkKICAgICAgICBvcGVuKCdib290YWJsZS9yZWNvdmVyeS9taW51aXR3cnAvZ3JhcGhpY3NfZHJtLmNwcCcsICd3Jykud3JpdGUoY29udGVudCkKICAgICAgICBwcmludCgnRFJNIEZsaXAgUmV3cml0ZSBWMTEgYXBwbGllZCBzdWNjZXNzZnVsbHkhJykKICAgIGVsc2U6CiAgICAgICAgcHJpbnQoJ0ZhaWxlZCB0byBmaW5kIGRybV9mbGlwIGluIGdyYXBoaWNzX2RybS5jcHAnKQpleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICBwcmludCgnUGF0Y2hpbmcgZHJtX2ZsaXAgZmFpbGVkOicsIGUpCg==" | base64 -d > patch.py
+        python3 patch.py || true
         
         # 4. Patch LoadPackage("splash") to not draw if headless
         sed -i 's/res = LoadPackage("splash", TWRES "splash.xml", "splash");/if (!gr_backend || gr_backend->blank == NULL) res = 0; else res = LoadPackage("splash", TWRES "splash.xml", "splash");/g' bootable/recovery/gui/gui.cpp || true
