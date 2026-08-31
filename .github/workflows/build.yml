@@ -94,7 +94,11 @@ jobs:
         import sys
         try:
             content = open('bootable/recovery/minuitwrp/graphics.cpp').read()
-            replacement = '''printf(\"Running Headless TWRP Fallback!\\\\n\");
+            
+            # Disable DRM probing completely to prevent kernel freeze
+            content = content.replace('gr_backend = open_drm();', '// gr_backend = open_drm();')
+            
+            replacement = '''printf(\"Running Pure Headless TWRP Fallback!\\\\n\");
             gr_draw = (GRSurface*)malloc(sizeof(GRSurface));
             gr_draw->width = 720;
             gr_draw->height = 1600;
@@ -109,7 +113,7 @@ jobs:
             if 'return -1;' in content:
                 content = content.replace('return -1;', replacement, 1)
                 open('bootable/recovery/minuitwrp/graphics.cpp', 'w').write(content)
-                print('Headless patch applied successfully!')
+                print('Pure Headless patch applied successfully!')
             else:
                 print('Failed to find return -1; in graphics.cpp')
         except Exception as e:
