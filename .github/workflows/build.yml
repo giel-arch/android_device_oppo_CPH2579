@@ -90,34 +90,77 @@ jobs:
         " || true
         
         # 3. Patch gr_init() to initialize Fake Surface if fbdev fails (Headless Fallback)
+        # 3. Undo V10 Pure Headless: We want to use the actual DRM driver!
         python3 -c "
         import sys
         try:
             content = open('bootable/recovery/minuitwrp/graphics.cpp').read()
-            
-            # Disable DRM probing completely to prevent kernel freeze
-            content = content.replace('gr_backend = open_drm();', '// gr_backend = open_drm();')
-            
-            replacement = '''printf(\"Running Pure Headless TWRP Fallback!\\\\n\");
-            gr_draw = (GRSurface*)malloc(sizeof(GRSurface));
-            gr_draw->width = 720;
-            gr_draw->height = 1600;
-            gr_draw->row_bytes = 720 * 4;
-            gr_draw->pixel_bytes = 4;
-            gr_draw->data = (unsigned char*)malloc(720 * 1600 * 4);
-            gr_backend = (minui_backend*)malloc(sizeof(minui_backend));
-            gr_backend->init = [](minui_backend*) -> GRSurface* { return gr_draw; };
-            gr_backend->blank = [](minui_backend*, bool) {};
-            gr_backend->flip = [](minui_backend*) -> GRSurface* { return gr_draw; };
-            gr_backend->exit = [](minui_backend*) {};'''
-            if 'return -1;' in content:
-                content = content.replace('return -1;', replacement, 1)
-                open('bootable/recovery/minuitwrp/graphics.cpp', 'w').write(content)
-                print('Pure Headless patch applied successfully!')
-            else:
-                print('Failed to find return -1; in graphics.cpp')
+            content = content.replace('// gr_backend = open_drm();', 'gr_backend = open_drm();')
+            open('bootable/recovery/minuitwrp/graphics.cpp', 'w').write(content)
         except Exception as e:
-            print('Patching failed:', e)
+            print('Undo V10 failed:', e)
+        " || true
+        
+        # 4. Patch drm_flip to use drmModeSetCrtc instead of drmModePageFlip (DRM Rewrite V11)
+        python3 -c "
+        import sys
+        try:
+            content = open('bootable/recovery/minuitwrp/graphics_drm.cpp').read()
+            
+            old_flip = '''static GRSurface* drm_flip(minui_backend* backend __unused) {
+    bool ongoing_flip = true;
+    memcpy(drm_surfaces[current_buffer]->base.data,
+            draw_buf->data, draw_buf->height * draw_buf->row_bytes);
+
+
+    if (drmModePageFlip(drm_fd, main_monitor_crtc->crtc_id,
+                          drm_surfaces[current_buffer]->fb_id, DRM_MODE_PAGE_FLIP_EVENT, &ongoing_flip)) {
+        printf(\"Failed to drmModePageFlip\");
+        return nullptr;
+    }
+
+    while (ongoing_flip) {
+        struct pollfd fds = {
+            .fd = drm_fd,
+            .events = POLLIN
+        };
+
+        if (poll(&fds, 1, -1) == -1 || !(fds.revents & POLLIN)) {
+            perror(\"Failed to poll() on drm fd\");
+            break;
+        }
+
+        drmEventContext evctx = {
+            .version = DRM_EVENT_CONTEXT_VERSION,
+            .page_flip_handler = page_flip_complete
+        };
+
+        if (drmHandleEvent(drm_fd, &evctx) != 0) {
+            perror(\"Failed to drmHandleEvent\");
+            break;
+        }
+    }
+
+    current_buffer = 1 - current_buffer;
+    return draw_buf;
+}'''
+            new_flip = '''static GRSurface* drm_flip(minui_backend* backend __unused) {
+    memcpy(drm_surfaces[current_buffer]->base.data,
+            draw_buf->data, draw_buf->height * draw_buf->row_bytes);
+
+    drm_enable_crtc(drm_fd, main_monitor_crtc, drm_surfaces[current_buffer]);
+
+    current_buffer = 1 - current_buffer;
+    return draw_buf;
+}'''
+            if 'static GRSurface* drm_flip' in content:
+                content = content.replace(old_flip, new_flip, 1)
+                open('bootable/recovery/minuitwrp/graphics_drm.cpp', 'w').write(content)
+                print('DRM Flip Rewrite V11 applied successfully!')
+            else:
+                print('Failed to find drm_flip in graphics_drm.cpp')
+        except Exception as e:
+            print('Patching drm_flip failed:', e)
         " || true
         
         # 4. Patch LoadPackage("splash") to not draw if headless
