@@ -1,4 +1,4 @@
-name: Build TWRP Android 15 for OPPO A38
+name: Build OrangeFox Android 15 for OPPO A38
 
 on:
   workflow_dispatch:
@@ -40,86 +40,37 @@ jobs:
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@global.com"
-        git config --global url."https://github.com/".insteadOf git@github.com:
 
-    - name: Initialize Minimal TWRP Manifest
+    - name: Initialize OrangeFox Manifest
       run: |
-        mkdir twrp
-        cd twrp
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-14.1 --depth=1
+        mkdir fox
+        cd fox
+        repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_12.1 --depth=1
 
     - name: Sync Source Code
       run: |
-        cd twrp
+        cd fox
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
-
-    - name: Force Update SDK & SEPolicy Version to 35 (Android 15)
-      run: |
-        cd twrp
-        sed -i 's/PLATFORM_SDK_VERSION := 34/PLATFORM_SDK_VERSION := 35/g' build/make/core/version_defaults.mk || true
-        sed -i 's/PLATFORM_VERSION := 14/PLATFORM_VERSION := 15/g' build/make/core/version_defaults.mk || true
-        sed -i 's/sepolicy_major_vers := 34/sepolicy_major_vers := 35/g' build/make/core/config.mk || true
-        grep "PLATFORM_SDK_VERSION" build/make/core/version_defaults.mk || true
-        grep "sepolicy_major_vers" build/make/core/config.mk || true
-        cp build/make/target/product/gsi/current.txt build/make/target/product/gsi/35.txt || true
 
     - name: Clone Device Tree
       run: |
-        cd twrp
+        cd fox
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
-    - name: Apply TWRP C++ Patches (DRM Master & Headless Fallback)
+    - name: Build OrangeFox Vendor Boot
       run: |
-        cd twrp
-        # 1. Update libdrm to Android 15 AOSP
-        rm -rf external/libdrm
-        git clone https://android.googlesource.com/platform/external/libdrm -b android-15.0.0_r1 external/libdrm || true
-        
-        # 2. Patch graphics_drm.cpp to force DRM Master
-        python3 -c "
-        try:
-            content = open('bootable/recovery/minuitwrp/graphics_drm.cpp').read()
-            if 'drmModeGetResources(' in content:
-                content = content.replace('res = drmModeGetResources(drm_fd);', 'drmSetMaster(drm_fd);\n    res = drmModeGetResources(drm_fd);')
-                open('bootable/recovery/minuitwrp/graphics_drm.cpp', 'w').write(content)
-                print('DRM Master patch applied successfully!')
-            else:
-                print('Failed to find drmModeGetResources in graphics_drm.cpp')
-        except Exception as e:
-            print('Patching DRM failed:', e)
-        " || true
-        
-        # 3. Patch gr_init() to initialize Fake Surface if fbdev fails (Headless Fallback)
-        # 3. Undo V10 Pure Headless: We want to use the actual DRM driver!
-        python3 -c "
-        import sys
-        try:
-            content = open('bootable/recovery/minuitwrp/graphics.cpp').read()
-            content = content.replace('// gr_backend = open_drm();', 'gr_backend = open_drm();')
-            open('bootable/recovery/minuitwrp/graphics.cpp', 'w').write(content)
-        except Exception as e:
-            print('Undo V10 failed:', e)
-        " || true
-        
-        python3 .github/workflows/patch_v15.py || true
-        
-        # 4. Patch LoadPackage("splash") to not draw if headless
-        sed -i 's/res = LoadPackage("splash", TWRES "splash.xml", "splash");/if (!gr_backend || gr_backend->blank == NULL) res = 0; else res = LoadPackage("splash", TWRES "splash.xml", "splash");/g' bootable/recovery/gui/gui.cpp || true
-
-    - name: Build TWRP Vendor Boot
-      run: |
-        cd twrp
+        cd fox
         export ALLOW_MISSING_DEPENDENCIES=true
-        export SOONG_SKIP_TESTS=true
-        export SKIP_SOONG_TESTS=true
+        export FOX_VIRTUAL_AB_DEVICE=1
+        export FOX_VENDOR_BOOT_RECOVERY=1
+        export FOX_RECOVERY_INSTALL_PARTITION="/vendor_boot"
         source build/envsetup.sh
-        lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-eng || lunch twrp_CPH2579-userdebug
-        mka task_profiles.json -j2 || true
+        lunch twrp_CPH2579-eng
         mka vendorbootimage -j2
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: TWRP-Android15-OPPO-A38-VendorBoot
+        name: OrangeFox-Android15-OPPO-A38-VendorBoot
         path: |
-          twrp/out/target/product/CPH2579/vendor_boot.img
+          fox/out/target/product/CPH2579/vendor_boot.img
