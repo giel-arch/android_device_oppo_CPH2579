@@ -57,9 +57,9 @@ BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 # Resolution & Theme Setup
 TW_THEME := portrait_hdpi
 TARGET_SCREEN_WIDTH := 720
-TARGET_SCREEN_HEIGHT := 1600
+TARGET_SCREEN_HEIGHT := 1612
 TW_SCREEN_WIDTH := 720
-TW_SCREEN_HEIGHT := 1600
+TW_SCREEN_HEIGHT := 1612
 TW_MAX_BRIGHTNESS := 2047
 TW_DEFAULT_BRIGHTNESS := 1024
 
@@ -73,8 +73,15 @@ TW_FRAMERATE := 60
 # Screen blanking disabled to prevent black screen issues
 # TW_NO_SCREEN_BLANK := true
 # TW_SCREEN_BLANK_ON_BOOT := true
-TW_Y_OFFSET := 80
-TW_H_OFFSET := 80
+# OrangeFox specific settings
+OF_STATUS_H := 90
+OF_STATUS_INDENT_LEFT := 48
+OF_STATUS_INDENT_RIGHT := 48
+OF_HIDE_NOTCH := 1
+OF_SCREEN_H := 1612
+OF_USE_GREEN_LED := 0
+OF_FL_PATH1 := /sys/class/leds/flashlight/brightness
+TW_BATTERY_SYSFS_PATH := /sys/class/power_supply/battery
 # TWRP Specific Flags
 RECOVERY_SDCARD_ON_DATA := true
 TW_EXCLUDE_DEFAULT_USB_INIT := true
