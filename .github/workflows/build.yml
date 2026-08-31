@@ -53,7 +53,7 @@ jobs:
         export FOX_VENDOR_BOOT_RECOVERY=1
         export FOX_RECOVERY_INSTALL_PARTITION="/vendor_boot"
         source build/envsetup.sh
-        lunch twrp_CPH2579-eng
+        lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-trunk_staging-eng || lunch twrp_CPH2579-eng
         mka vendorbootimage -j2
 
     - name: Upload Artifacts
