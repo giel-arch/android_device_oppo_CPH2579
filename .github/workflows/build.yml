@@ -1,4 +1,4 @@
-name: Build OrangeFox Android 15 for OPPO A38
+name: Build TWRP Android 15 (twrp-14 branch) for OPPO A38
 
 on:
   workflow_dispatch:
@@ -41,36 +41,56 @@ jobs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@global.com"
 
-    - name: Initialize OrangeFox Manifest
+    - name: Initialize TWRP-14 Manifest
       run: |
-        mkdir fox
-        cd fox
-        repo init -u https://gitlab.com/OrangeFox/Manifest.git -b fox_12.1 --depth=1
+        mkdir twrp
+        cd twrp
+        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-14 --depth=1
 
     - name: Sync Source Code
       run: |
-        cd fox
-        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --current-branch
+        cd twrp
+        repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc)
+
+    - name: Force Update SDK & SEPolicy Version to 35 (Android 15)
+      run: |
+        cd twrp
+        sed -i 's/PLATFORM_SDK_VERSION := 34/PLATFORM_SDK_VERSION := 35/g' build/make/core/version_defaults.mk || true
+        sed -i 's/PLATFORM_VERSION := 14/PLATFORM_VERSION := 15/g' build/make/core/version_defaults.mk || true
+        sed -i 's/sepolicy_major_vers := 34/sepolicy_major_vers := 35/g' build/make/core/config.mk || true
+        grep "PLATFORM_SDK_VERSION" build/make/core/version_defaults.mk || true
+        grep "sepolicy_major_vers" build/make/core/config.mk || true
+        cp build/make/target/product/gsi/current.txt build/make/target/product/gsi/35.txt || true
 
     - name: Clone Device Tree
       run: |
-        cd fox
+        cd twrp
         git clone https://github.com/giel-arch/android_device_oppo_CPH2579.git device/oppo/CPH2579
 
-    - name: Build OrangeFox Vendor Boot
+    - name: Apply Basic Fixes
       run: |
-        cd fox
+        cd twrp
+        # Update libdrm to Android 15 AOSP to prevent compilation errors
+        rm -rf external/libdrm
+        git clone https://android.googlesource.com/platform/external/libdrm -b android-15.0.0_r1 external/libdrm || true
+        
+        # Patch LoadPackage("splash") to not draw if headless
+        sed -i 's/res = LoadPackage("splash", TWRES "splash.xml", "splash");/if (!gr_backend || gr_backend->blank == NULL) res = 0; else res = LoadPackage("splash", TWRES "splash.xml", "splash");/g' bootable/recovery/gui/gui.cpp || true
+
+    - name: Build TWRP Vendor Boot
+      run: |
+        cd twrp
         export ALLOW_MISSING_DEPENDENCIES=true
-        export FOX_VIRTUAL_AB_DEVICE=1
-        export FOX_VENDOR_BOOT_RECOVERY=1
-        export FOX_RECOVERY_INSTALL_PARTITION="/vendor_boot"
+        export SOONG_SKIP_TESTS=true
+        export SKIP_SOONG_TESTS=true
         source build/envsetup.sh
-        lunch twrp_CPH2579-eng
+        lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-eng || lunch twrp_CPH2579-userdebug
+        mka task_profiles.json -j2 || true
         mka vendorbootimage -j2
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: OrangeFox-Android15-OPPO-A38-VendorBoot
+        name: TWRP-Android15-OPPO-A38-VendorBoot
         path: |
-          fox/out/target/product/CPH2579/vendor_boot.img
+          twrp/out/target/product/CPH2579/vendor_boot.img
