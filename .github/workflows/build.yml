@@ -56,9 +56,9 @@ jobs:
         # Patch readonly variable errors in OrangeFox AOSP 14.1
         sed -i 's/AB_OTA_UPDATER :=/# AB_OTA_UPDATER :=/g' bootable/recovery/orangefox.mk || true
         sed -i 's/AB_OTA_UPDATER ?=/# AB_OTA_UPDATER ?=/g' bootable/recovery/orangefox.mk || true
-        sed -i 's/"1"/"0 0 0 1"/g' bootable/recovery/twrp-functions.cpp || true
-        sed -i 's/"255"/"0 0 0 1"/g' bootable/recovery/twrp-functions.cpp || true
-        sed -i 's/"0"/"0 0 0 0"/g' bootable/recovery/twrp-functions.cpp || true
+        sed -i 's/write_file(flashlight_path, "1")/write_file(flashlight_path, "0 0 0 1")/g' bootable/recovery/twrp-functions.cpp || true
+        sed -i 's/write_file(flashlight_path, "255")/write_file(flashlight_path, "0 0 0 1")/g' bootable/recovery/twrp-functions.cpp || true
+        sed -i 's/write_file(flashlight_path, "0")/write_file(flashlight_path, "0 0 0 0")/g' bootable/recovery/twrp-functions.cpp || true
         lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-trunk_staging-eng || lunch twrp_CPH2579-eng
         mka vendorbootimage -j2
 
