@@ -80,11 +80,11 @@ OF_STATUS_INDENT_RIGHT := 48
 OF_HIDE_NOTCH := 1
 OF_SCREEN_H := 1612
 OF_USE_GREEN_LED := 0
-OF_FL_PATH1 := /sys/class/leds/flashlight/brightness
+OF_FL_PATH1 := /sys/class/flashlight_core/flashlight/flashlight_torch
 TW_BATTERY_SYSFS_PATH := /sys/class/power_supply/battery
 # TWRP Specific Flags
 RECOVERY_SDCARD_ON_DATA := true
-TW_EXCLUDE_DEFAULT_USB_INIT := true
+# TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_EXTRA_LANGUAGES := true
 # TW_INCLUDE_CRYPTO := true
 # TW_INCLUDE_CRYPTO_FBE := true

@@ -56,6 +56,7 @@ jobs:
         # Patch readonly variable errors in OrangeFox AOSP 14.1
         sed -i 's/AB_OTA_UPDATER :=/# AB_OTA_UPDATER :=/g' bootable/recovery/orangefox.mk || true
         sed -i 's/AB_OTA_UPDATER ?=/# AB_OTA_UPDATER ?=/g' bootable/recovery/orangefox.mk || true
+        python3 device/oppo/CPH2579/.github/workflows/patch_flashlight.py || true
         lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-trunk_staging-eng || lunch twrp_CPH2579-eng
         mka vendorbootimage -j2
 
