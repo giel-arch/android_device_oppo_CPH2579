@@ -104,3 +104,8 @@ TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += $(TARGET_OUT_SHARED_LIBRARIES)/an
 # OrangeFox V11 Customizations
 OF_MAINTAINER := Zhantwo
 FOX_SETTINGS_ROOT_DIRECTORY := /metadata
+
+# OrangeFox V12 Customizations
+TW_USE_LEGACY_BATTERY_SERVICES := true
+TW_CUSTOM_BATTERY_PATH := /sys/class/power_supply/battery
+TW_EXCLUDE_MTP := true
