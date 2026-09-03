@@ -18,3 +18,6 @@ on boot
     start mobicore
     start vendor.keymint-trustonic
     start vendor.gatekeeper-default
+
+    # Enable OTG Power Output for OPPO/Oplus devices
+    write /sys/devices/virtual/oplus_chg/usb/otg_switch 1
