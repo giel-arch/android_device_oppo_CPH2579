@@ -109,3 +109,4 @@ FOX_SETTINGS_ROOT_DIRECTORY := /metadata
 TW_USE_LEGACY_BATTERY_SERVICES := true
 TW_CUSTOM_BATTERY_PATH := /sys/class/power_supply/battery
 TW_EXCLUDE_MTP := true
+TW_INCLUDE_FASTBOOTD := true
