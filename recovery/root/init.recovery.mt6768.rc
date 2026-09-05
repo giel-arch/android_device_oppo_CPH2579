@@ -19,8 +19,10 @@ on boot
     start vendor.keymint-trustonic
     start vendor.gatekeeper-default
 
-    # Enable OTG Power Output for OPPO/Oplus devices
-    write /sys/devices/virtual/oplus_chg/usb/otg_switch 1
+    # Create Fastboot FunctionFS Endpoints
+    mkdir /config/usb_gadget/g1/functions/ffs.fastboot
+    mkdir /dev/usb-ffs/fastboot 0770 system system
+    mount functionfs fastboot /dev/usb-ffs/fastboot rmode=0770,fmode=0660,uid=1000,gid=1000
 
 on property:sys.usb.config=fastboot && property:sys.usb.configfs=1
     write /config/usb_gadget/g1/UDC "none"
