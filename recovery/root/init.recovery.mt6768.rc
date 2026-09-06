@@ -25,3 +25,22 @@ on boot
 
     # Enable OTG Power Output for OPPO/Oplus devices
     write /sys/devices/virtual/oplus_chg/usb/otg_switch 1
+
+# V15: SELinux Bypass for Trustonic/Keymaster Daemons
+service mobicore /vendor/bin/mcDriverDaemon --P1 /mnt/vendor/persist/mcRegistry -r /vendor/app/mcRegistry/06090000000000000000000000000000.drbin -r /vendor/app/mcRegistry/020f0000000000000000000000000000.drbin
+    override
+    user root
+    group root
+    seclabel u:r:recovery:s0
+
+service vendor.keymint-trustonic /vendor/bin/hw/android.hardware.security.keymint@3.0-service.trustonic_norkp
+    override
+    user root
+    group root
+    seclabel u:r:recovery:s0
+
+service vendor.gatekeeper-default /vendor/bin/hw/android.hardware.gatekeeper-service.trustonic
+    override
+    user root
+    group root
+    seclabel u:r:recovery:s0
