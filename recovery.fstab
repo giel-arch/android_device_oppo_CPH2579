@@ -59,7 +59,6 @@ my_manifest /my_manifest ext4 ro,barrier=1  wait,slotselect,logical,first_stage_
 /dev/block/by-name/para /para emmc defaults defaults
 /dev/block/by-name/misc /misc emmc defaults defaults
 /dev/block/by-name/boot /boot emmc defaults defaults
-/dev/block/by-name/recovery /recovery emmc defaults defaults
 /dev/block/by-name/logo /logo emmc defaults defaults
 /dev/block/by-name/expdb /expdb emmc defaults defaults
 /dev/block/by-name/seccfg /seccfg emmc defaults defaults
