@@ -109,8 +109,12 @@ FOX_SETTINGS_ROOT_DIRECTORY := /metadata
 TW_USE_LEGACY_BATTERY_SERVICES := true
 TW_CUSTOM_BATTERY_PATH := /sys/class/power_supply/battery
 
-# V14: Re-enable FBE Crypto
-TW_INCLUDE_CRYPTO := true
-TW_INCLUDE_CRYPTO_FBE := true
-TW_INCLUDE_FBE_METADATA_DECRYPT := true
-TW_USE_FSCRYPT_POLICY := 2
+# V17A: Stable Alternative (Disable FBE & Fix MTP)
+# TW_INCLUDE_CRYPTO := true
+# TW_INCLUDE_CRYPTO_FBE := true
+# TW_INCLUDE_FBE_METADATA_DECRYPT := true
+# TW_USE_FSCRYPT_POLICY := 2
+
+# MTP Fixes for PC detection
+TW_HAS_MTP := true
+TW_INCLUDE_LPDUMP := true
