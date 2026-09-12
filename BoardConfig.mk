@@ -90,3 +90,5 @@ TW_CUSTOM_BATTERY_PATH := /sys/class/power_supply/battery
 
 TW_HAS_MTP := true
 TW_INCLUDE_LPDUMP := true
+TARGET_USES_LOGD := true
+TW_INCLUDE_LOGCAT := true
