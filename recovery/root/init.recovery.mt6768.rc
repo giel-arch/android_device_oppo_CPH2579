@@ -15,6 +15,12 @@ on init
 on boot
     write /sys/devices/virtual/oplus_chg/usb/otg_switch 1
 
+service vendor.mobicore /vendor/bin/mcDriverDaemon
+    class early_hal
+    user root
+    group root
+    seclabel u:r:recovery:s0
+
 service vendor.keymint-trustonic /vendor/bin/hw/android.hardware.security.keymint@3.0-service.trustonic_norkp
     class early_hal
     user root
