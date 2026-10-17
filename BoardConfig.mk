@@ -30,9 +30,7 @@ TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
 # A14 stock layout (verified from boot_a.img): header v2, 2048 pagesize,
 # MTK offsets; dtb section is the stock Android DT TABLE (d7b7ab1e).
-BOARD_MKBOOTIMG_ARGS := --base 0x40000000 --kernel_offset 0x00080000 --ramdisk_offset 0x07c80000 --tags_offset 0x0bc80000 --dtb_offset 0x0bc80000 --header_version $(BOARD_BOOT_HEADER_VERSION) --pagesize $(BOARD_KERNEL_PAGESIZE)
-BOARD_INCLUDE_DTB_IN_BOOTIMG := true
-BOARD_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
+BOARD_MKBOOTIMG_ARGS := --base 0x40000000 --kernel_offset 0x00080000 --ramdisk_offset 0x07c80000 --tags_offset 0x0bc80000 --dtb_offset 0x0bc80000 --dtb $(TARGET_PREBUILT_DTB) --header_version $(BOARD_BOOT_HEADER_VERSION) --pagesize $(BOARD_KERNEL_PAGESIZE)
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
 
 BOARD_FLASH_BLOCK_SIZE := 131072
