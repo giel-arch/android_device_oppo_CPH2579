@@ -1,4 +1,4 @@
-name: Build OrangeFox Android 14.1 for OPPO A38
+name: Build OrangeFox for OPPO A38 (Android 14 base)
 
 on:
   workflow_dispatch:
@@ -50,8 +50,7 @@ jobs:
         cd fox
         export ALLOW_MISSING_DEPENDENCIES=true
         export FOX_VIRTUAL_AB_DEVICE=1
-        export FOX_VENDOR_BOOT_RECOVERY=1
-        export FOX_RECOVERY_INSTALL_PARTITION="/vendor_boot"
+        export FOX_RECOVERY_INSTALL_PARTITION="/boot"
         source build/envsetup.sh
         # Patch readonly variable errors in OrangeFox AOSP 14.1
         sed -i 's/AB_OTA_UPDATER :=/# AB_OTA_UPDATER :=/g' bootable/recovery/orangefox.mk || true
@@ -63,11 +62,11 @@ jobs:
         sed -i 's/ret = PartitionManager.Wipe_By_Path(Key_Directory);/\/\/ ret = PartitionManager.Wipe_By_Path(Key_Directory);/g' bootable/recovery/partition.cpp || true
         sed -i 's/write_file(flashlight_path, "0")/write_file(flashlight_path, "0 0 0 0")/g' bootable/recovery/twrp-functions.cpp || true
         lunch twrp_CPH2579-ap2a-eng || lunch twrp_CPH2579-trunk_staging-eng || lunch twrp_CPH2579-eng
-        mka vendorbootimage -j2
+        mka recoveryimage -j2
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: OrangeFox-Android14-OPPO-A38-VendorBoot
+        name: OrangeFox-OPPO-A38-A14
         path: |
-          fox/out/target/product/CPH2579/vendor_boot.img
+          fox/out/target/product/CPH2579/recovery.img

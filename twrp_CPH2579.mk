@@ -15,7 +15,8 @@ PRODUCT_BRAND := OPPO
 PRODUCT_MODEL := Oppo A38
 PRODUCT_MANUFACTURER := oppo
 
-PRODUCT_BUILD_VENDOR_BOOT_IMAGE := true
+# A14: recovery goes into boot.img (header v2), no vendor_boot
+PRODUCT_BUILD_VENDOR_BOOT_IMAGE := false
 # Fix TWRP ramdisk copy error
 
 # Debugging tools
