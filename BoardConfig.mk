@@ -72,7 +72,7 @@ OF_FL_PATH1 := /sys/class/flashlight_core/flashlight/flashlight_torch
 TW_BATTERY_SYSFS_PATH := /sys/class/power_supply/battery
 
 RECOVERY_SDCARD_ON_DATA := true
-TW_EXTRA_LANGUAGES := true
+TW_EXTRA_LANGUAGES := false
 TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_USE_TOOLBOX := true
 TW_INCLUDE_REPACKTOOLS := true

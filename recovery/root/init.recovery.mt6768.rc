@@ -15,14 +15,7 @@ on init
 on boot
     write /sys/devices/virtual/oplus_chg/usb/otg_switch 1
 
-service vendor.mobicore /vendor/bin/mcDriverDaemon
-    class early_hal
-    user root
-    group root
-    seclabel u:r:recovery:s0
-
-service vendor.keymint-trustonic /vendor/bin/hw/android.hardware.security.keymint@3.0-service.trustonic_norkp
-    class early_hal
-    user root
-    group root
-    seclabel u:r:recovery:s0
+# Trustonic/mobicore services removed (A14 bring-up): the mcRegistry
+# trustlets hang recovery boot (v21 on A15 hung at vendor logo) and the
+# 22+ MB of blobs blew the boot-image size past what MTK LK accepts.
+# Re-add only after boot is proven and with signed/trusted trustlets.
